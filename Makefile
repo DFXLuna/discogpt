@@ -2,7 +2,7 @@ lint:
 	golangci-lint run ./...
 
 build:
-	docker build . -f ./deploy/Dockerfile -t dfxluna/discogpt:latest
+	docker build . -f ./deploy/Dockerfile -t ghcr.io/dfxluna/discogpt:latest
 
 push:
-	docker push dfxluna/discogpt:latest
+	docker push ghcr.io/dfxluna/discogpt:latest
