@@ -1,10 +1,15 @@
 # Discogpt
 A little discord bot to connect your OpenAI compliant LLM API to a Discord server.
 
-![Docker Pulls](https://img.shields.io/docker/pulls/dfxluna/discogpt)
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/dfxluna/discogpt/total)
+![GitHub License](https://img.shields.io/github/license/dfxluna/discogpt)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/49ec0462c97949edbd8719d813f415d8)](https://app.codacy.com/gh/DFXLuna/discogpt/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
 ## Requirements
 - [A discord bot token](https://discord.com/developers/applications)
+    - Create an application
+    - Click bot and enable `Message Content Intent`
+    - Copy the bot token into your config.yaml
 - An OpenAI compatible LLM Inference API
     - [OpenAI API](https://openai.com/api/)
     - [Cloudflare AI Workers](https://developers.cloudflare.com/workers-ai/)
@@ -49,6 +54,9 @@ See [example-config.yaml](./example-config.yaml).
 ## Development Reqs
 - Go 1.22+
 - golangci-lint
+
+## Contributions
+Feel free to file PRs.
 
 ## Support
 Feel free to file an issue if something is broken or missing a feature.
