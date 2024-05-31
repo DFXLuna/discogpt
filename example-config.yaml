@@ -1,0 +1,7 @@
+OAIHost: "https://api.cloudflare.com/client/v4/accounts/{your_account_id}/ai"
+OAIToken: "your_token"
+OAISystemPrompt: "[You are ChadBot]"
+OAIModel: "@hf/mistral/mistral-7b-instruct-v0.2"
+BotToken: "your_discord_token"
+AllowedChannels: "your,channel,ids"
+Trigger: "Hey Chadbot,"
