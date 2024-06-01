@@ -14,7 +14,7 @@ import (
 // This file encapsulates an inference providing backend
 // Backends must provide an object that fulfils the interface
 
-//go:generate mockgen -source ./ai.go -destination ./mock/ai.go
+//go:generate mockgen -source ./messageGenerator.go -destination ./mock/messageGenerator.go
 type MessageGenerator interface {
 	Generate(ctx context.Context, prompt string, user string) (string, error)
 }
@@ -35,6 +35,7 @@ type oaiGenerator struct {
 	SystemPrompt     string            // gets inserted before the provided messages as a prompt with role System
 	RequestModifiers []RequestModifier // Will be called on the request made for generation, mostly used for auth
 	Model            string            //The model to include in the OAI chat completions call
+	Log              Logger
 }
 
 type oaiCompletionsReq struct {
@@ -67,7 +68,7 @@ type oaiMessage struct {
 
 type RequestModifier func(*http.Request) error
 
-func NewOpenAIGenerator(baseURL string, model string, promptPrefix string, mods ...RequestModifier) (*oaiGenerator, error) {
+func NewOpenAIGenerator(baseURL string, model string, promptPrefix string, log Logger, mods ...RequestModifier) (*oaiGenerator, error) {
 	completions, err := url.JoinPath(baseURL, oaiCompletionsEndpoint)
 	if err != nil {
 		return nil, err
@@ -77,10 +78,12 @@ func NewOpenAIGenerator(baseURL string, model string, promptPrefix string, mods 
 		SystemPrompt:     promptPrefix + "\n",
 		RequestModifiers: mods,
 		Model:            model,
+		Log:              log,
 	}, nil
 }
 
 func (o *oaiGenerator) Generate(ctx context.Context, prompt string, user string) (string, error) {
+	o.Log.Debugf("Generating for %v", user)
 	cjson := oaiCompletionsReq{
 		Model: o.Model,
 		Mode:  oaiInstruct,

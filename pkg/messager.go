@@ -24,9 +24,10 @@ type discordMessager struct {
 	S               *discordgo.Session
 	Trigger         string
 	AllowedChannels []string
+	Log             Logger
 }
 
-func NewDiscordMessager(ctx context.Context, tok string, trigger string, allowedChannels []string, g MessageGenerator) (*discordMessager, error) {
+func NewDiscordMessager(ctx context.Context, tok string, trigger string, allowedChannels []string, g MessageGenerator, log Logger) (*discordMessager, error) {
 	s, err := discordgo.New("Bot " + tok)
 	if err != nil {
 		return nil, err
@@ -36,11 +37,12 @@ func NewDiscordMessager(ctx context.Context, tok string, trigger string, allowed
 		G:               g,
 		AllowedChannels: allowedChannels,
 		Trigger:         trigger + " ",
+		Log:             log,
 	}, nil
 }
 
 func (d *discordMessager) Run(ctx context.Context, errch chan error) {
-	d.S.AddHandler(replyInjector(discordReply, d.Trigger, d.AllowedChannels, d.G))
+	d.S.AddHandler(replyInjector(discordReply, d.Trigger, d.AllowedChannels, d.G, d.Log))
 	d.S.Identify.Intents = discordgo.IntentsGuildMessages
 	// Open a websocket connection to Discord and begin listening.
 	err := d.S.Open()
@@ -49,17 +51,18 @@ func (d *discordMessager) Run(ctx context.Context, errch chan error) {
 	}
 	defer d.S.Close()
 	errch <- nil
+	d.Log.Debugf("Starting discord messager: Trigger: %v, AllowedChannels: %v", d.Trigger, d.AllowedChannels)
 	<-ctx.Done()
 }
 
-func replyInjector(f func(*discordgo.Session, *discordgo.MessageCreate, string, []string, MessageGenerator),
-	trigger string, allowedChannels []string, g MessageGenerator) func(*discordgo.Session, *discordgo.MessageCreate) {
+func replyInjector(f func(*discordgo.Session, *discordgo.MessageCreate, string, []string, MessageGenerator, Logger),
+	trigger string, allowedChannels []string, g MessageGenerator, l Logger) func(*discordgo.Session, *discordgo.MessageCreate) {
 	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		f(s, m, trigger, allowedChannels, g)
+		f(s, m, trigger, allowedChannels, g, l)
 	}
 }
 
-func discordReply(s *discordgo.Session, m *discordgo.MessageCreate, trigger string, allowedChannels []string, g MessageGenerator) {
+func discordReply(s *discordgo.Session, m *discordgo.MessageCreate, trigger string, allowedChannels []string, g MessageGenerator, l Logger) {
 	// Ignore all messages created by the bot or in channels not on the allow list
 	if m.Author.ID == s.State.User.ID || !slices.Contains(allowedChannels, m.ChannelID) {
 		return
@@ -67,18 +70,19 @@ func discordReply(s *discordgo.Session, m *discordgo.MessageCreate, trigger stri
 	index := strings.Index(strings.ToLower(m.Content), strings.ToLower(trigger))
 	if index != -1 {
 		_ = s.ChannelTyping(m.ChannelID)
+		l.Debugf("Triggered by %s", m.Author.Username)
 		reply, err := g.Generate(context.Background(), m.Content[index:], m.Author.Username)
 		if err != nil {
 			_, err := s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("error from generator %v", err))
 			if err != nil {
-				fmt.Printf("Error sending error message: %v", err)
+				l.Errorf("Error sending error message: %v", err)
 			}
-			fmt.Printf("error from generator %v", err)
+			l.Errorf("error from generator %v", err)
 			return
 		}
 		_, err = s.ChannelMessageSend(m.ChannelID, reply)
 		if err != nil {
-			fmt.Printf("Error sending message: %v", err)
+			l.Errorf("Error sending message: %v", err)
 		}
 		return
 	}

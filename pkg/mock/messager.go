@@ -16,54 +16,37 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockMessager is a mock of Messager interface.
-type MockMessager struct {
+// MockGeneratorMessager is a mock of GeneratorMessager interface.
+type MockGeneratorMessager struct {
 	ctrl     *gomock.Controller
-	recorder *MockMessagerMockRecorder
+	recorder *MockGeneratorMessagerMockRecorder
 }
 
-// MockMessagerMockRecorder is the mock recorder for MockMessager.
-type MockMessagerMockRecorder struct {
-	mock *MockMessager
+// MockGeneratorMessagerMockRecorder is the mock recorder for MockGeneratorMessager.
+type MockGeneratorMessagerMockRecorder struct {
+	mock *MockGeneratorMessager
 }
 
-// NewMockMessager creates a new mock instance.
-func NewMockMessager(ctrl *gomock.Controller) *MockMessager {
-	mock := &MockMessager{ctrl: ctrl}
-	mock.recorder = &MockMessagerMockRecorder{mock}
+// NewMockGeneratorMessager creates a new mock instance.
+func NewMockGeneratorMessager(ctrl *gomock.Controller) *MockGeneratorMessager {
+	mock := &MockGeneratorMessager{ctrl: ctrl}
+	mock.recorder = &MockGeneratorMessagerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockMessager) EXPECT() *MockMessagerMockRecorder {
+func (m *MockGeneratorMessager) EXPECT() *MockGeneratorMessagerMockRecorder {
 	return m.recorder
 }
 
-// GetInput mocks base method.
-func (m *MockMessager) GetInput(ctx context.Context) (string, error) {
+// Run mocks base method.
+func (m *MockGeneratorMessager) Run(ctx context.Context, errch chan error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetInput", ctx)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	m.ctrl.Call(m, "Run", ctx, errch)
 }
 
-// GetInput indicates an expected call of GetInput.
-func (mr *MockMessagerMockRecorder) GetInput(ctx any) *gomock.Call {
+// Run indicates an expected call of Run.
+func (mr *MockGeneratorMessagerMockRecorder) Run(ctx, errch any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInput", reflect.TypeOf((*MockMessager)(nil).GetInput), ctx)
-}
-
-// SendOutput mocks base method.
-func (m *MockMessager) SendOutput(ctx context.Context, message string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendOutput", ctx, message)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SendOutput indicates an expected call of SendOutput.
-func (mr *MockMessagerMockRecorder) SendOutput(ctx, message any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendOutput", reflect.TypeOf((*MockMessager)(nil).SendOutput), ctx, message)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Run", reflect.TypeOf((*MockGeneratorMessager)(nil).Run), ctx, errch)
 }

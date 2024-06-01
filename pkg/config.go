@@ -26,14 +26,14 @@ func GetAllowedChannels(c Config) []string {
 	return strings.Split(c.AllowedChannels, ",")
 }
 
-func GenerateConfig(configFile string) (Config, error) {
+func GenerateConfig(configFile string, log Logger) (Config, error) {
 	path, err := filepath.Abs(configFile)
 	if err != nil {
 		return Config{}, err
 	}
 	var cfg Config
 	if file, err := os.ReadFile(path); err == nil {
-		fmt.Printf("Using config from %s\n", configFile)
+		log.Infof("Using config from %s\n", configFile)
 		help, err := conf.Parse("", &cfg, yaml.WithData(file))
 		if err != nil {
 			if errors.Is(err, conf.ErrHelpWanted) {
@@ -43,7 +43,7 @@ func GenerateConfig(configFile string) (Config, error) {
 			return Config{}, err
 		}
 	} else {
-		fmt.Println("Using config env")
+		log.Infof("Using config env")
 		help, err := conf.Parse("", &cfg)
 		if err != nil {
 			if errors.Is(err, conf.ErrHelpWanted) {
