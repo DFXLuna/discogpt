@@ -1,10 +1,13 @@
 package discogpt
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"io"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -86,4 +89,50 @@ func discordReply(s *discordgo.Session, m *discordgo.MessageCreate, trigger stri
 		}
 		return
 	}
+}
+
+// This messager response to message on io(stdio & etc)
+// it responds to a line starting with trigger and ending with \n
+// Caller is responsible for closing R and W
+type ioMessager struct {
+	R       io.Reader
+	W       io.Writer
+	G       MessageGenerator
+	User    string // name to refer to the current user
+	Trigger string
+	Log     Logger
+}
+
+func NewIOMessager(r io.Reader, w io.Writer, trigger string, g MessageGenerator, log Logger) *ioMessager {
+	return &ioMessager{
+		R:       r,
+		W:       w,
+		G:       g,
+		Trigger: trigger,
+		Log:     log,
+	}
+}
+
+func (i *ioMessager) Run(ctx context.Context, errch chan error) {
+	_, _ = i.W.Write([]byte(fmt.Sprintf("[%v]: type a message...\n", time.Now().Local().String())))
+	scanner := bufio.NewScanner(i.R)
+	for scanner.Scan() {
+		line := scanner.Text()
+		index := strings.Index(strings.ToLower(line), strings.ToLower(i.Trigger))
+		if index != -1 {
+			_, _ = i.W.Write([]byte(fmt.Sprintf("[%v]: replying...\n", time.Now().Local().String())))
+			prompt, err := i.G.Generate(ctx, line[index:], i.User)
+			if err != nil {
+				errch <- err
+				return
+			}
+			_, _ = i.W.Write([]byte(fmt.Sprintf("[%v]: %v\n", time.Now().Local().String(), prompt)))
+		}
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+	}
+	errch <- scanner.Err()
 }

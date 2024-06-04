@@ -20,6 +20,8 @@ type Config struct {
 	BotToken        string `yaml:"BotToken" conf:"env:DISCOGPT_BOT_TOKEN,mask"`
 	AllowedChannels string `yaml:"AllowedChannels" conf:"env:DISCOGPT_ALLOWED_CHANNELS"` //comma separated list of channel IDs for bot to operate in
 	Trigger         string `yaml:"Trigger" conf:"env:DISCOGPT_TRIGGER"`
+
+	Mode string `yaml:"Mode" conf:"DISCOGPT_MODE"` // This is used to select between the discord messager and the ioMessager for local testing
 }
 
 func GetAllowedChannels(c Config) []string {

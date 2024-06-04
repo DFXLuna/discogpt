@@ -50,6 +50,7 @@ See [example-config.yaml](./example-config.yaml).
 |BotToken| Your discord bot token | 
 |AllowedChannels| A comma delimited list of [Discord Channel IDs](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID#h_01HRSTXPS5FMK2A5SMVSX4JW4E) for the bot to operate in.| `1137824512383429025,976152812312351829`
 |Trigger| The case insensitive phrase that will trigger your bot. A space is automatically inserted after your trigger phrase. | `Hey ChadBot,`
+|Mode| Select what messager to use, current values are "Discord" (for connecting to discord) or "IO" (for local testing on stdio) | `Discord` 
 
 ## Development Reqs
 - Go 1.22+

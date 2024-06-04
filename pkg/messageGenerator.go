@@ -11,6 +11,13 @@ import (
 	"net/url"
 )
 
+type MessagerMode string
+
+const (
+	DiscordMode MessagerMode = "Discord"
+	IOMode      MessagerMode = "IO"
+)
+
 // This file encapsulates an inference providing backend
 // Backends must provide an object that fulfils the interface
 

@@ -34,16 +34,27 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	if config.Mode == string(discogpt.DiscordMode) {
+		dm, err := discogpt.NewDiscordMessager(context.Background(), config.BotToken, config.Trigger, discogpt.GetAllowedChannels(config), mg, log)
+		if err != nil {
+			panic(err)
+		}
 
-	dm, err := discogpt.NewDiscordMessager(context.Background(), config.BotToken, config.Trigger, discogpt.GetAllowedChannels(config), mg, log)
-	if err != nil {
-		panic(err)
-	}
+		err = Run(mg, dm, log)
+		if err != nil {
+			panic(err)
+		}
 
-	err = Run(mg, dm, log)
-	if err != nil {
-		panic(err)
+	} else if config.Mode == string(discogpt.IOMode) {
+		im := discogpt.NewIOMessager(os.Stdin, os.Stdout, config.Trigger, mg, log)
+
+		err = Run(mg, im, log)
+		if err != nil {
+			panic(err)
+		}
 	}
+	panic(fmt.Errorf("Bad mode %v", config.Mode))
+
 }
 
 func SetupConfig(configFilePath string, log discogpt.Logger) (discogpt.Config, []discogpt.RequestModifier, error) {
