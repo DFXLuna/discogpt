@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  chroma:
+    image: ghcr.io/chroma-core/chroma:0.4.24
+    ports:
+      - 8000:8000
+    volumes:
+      - ./chroma-data:/chroma/chroma
+    environment:
+      - IS_PERSISTANT=TRUE
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8000/api/v1/heartbeat"
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  embedding-server:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.2
+    ports:
+      - 8080:80
+    volumes:
+      - ./tei-data:/data
+    environment:
+      - MODEL_ID=sentence-transformers/all-MiniLM-L6-v2
+      - REVISION=8b3219a92973c328a8e22fadcfa821b5dc75636a

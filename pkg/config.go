@@ -22,6 +22,12 @@ type Config struct {
 	Trigger         string `yaml:"Trigger" conf:"env:DISCOGPT_TRIGGER"`
 
 	Mode string `yaml:"Mode" conf:"DISCOGPT_MODE"` // This is used to select between the discord messager and the ioMessager for local testing
+
+	ChromaURL            string `yaml:"ChromaURL" conf:"env:DISCOGPT_CHROMA_URL"`         //URL for your chroma server
+	ChromaTEIURL         string `yaml:"ChromeTEIURL" conf:"env:DISCOGPT_CHROMA_ TEI_URL"` //URL for your hugging face TEI server
+	ChromaCollectionName string `yaml:"ChromaCollectionName" conf:"env:DISCOGPT_CHROMA_COLLECTION_NAME"`
+
+	Debug bool `yaml:"Debug" conf:"env:DISCOGPT_DEBUG"` //turns on the debug logger
 }
 
 func GetAllowedChannels(c Config) []string {

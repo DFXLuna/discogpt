@@ -17,20 +17,27 @@ const (
 )
 
 func main() {
-	log, err := discogpt.NewLogger()
+	log, err := discogpt.NewProdLogger()
 	if err != nil {
 		panic(err)
+	}
+
+	config, reqMods, genMods, err := SetupConfig(configFile, log)
+	if err != nil {
+		panic(err)
+	}
+	if config.Debug {
+		_ = log.Sync() // Clear original logger before replacing it
+		log, err = discogpt.NewDebugLogger()
+		if err != nil {
+			panic(err)
+		}
 	}
 	defer func() {
 		_ = log.Sync()
 	}()
 
-	config, mods, err := SetupConfig(configFile, log)
-	if err != nil {
-		panic(err)
-	}
-
-	mg, err := discogpt.NewOpenAIGenerator(config.OAIHost, config.OAIModel, config.OAISystemPrompt, log, mods...)
+	mg, err := discogpt.NewOpenAIGenerator(config.OAIHost, config.OAIModel, config.OAISystemPrompt, log, reqMods, genMods)
 	if err != nil {
 		panic(err)
 	}
@@ -53,28 +60,38 @@ func main() {
 			panic(err)
 		}
 	}
-	panic(fmt.Errorf("Bad mode %v", config.Mode))
+	panic(fmt.Errorf("bad mode %v", config.Mode))
 
 }
 
-func SetupConfig(configFilePath string, log discogpt.Logger) (discogpt.Config, []discogpt.RequestModifier, error) {
+func SetupConfig(configFilePath string, log discogpt.Logger) (
+	discogpt.Config, []discogpt.HTTPRequestModifier, []discogpt.GenerationRequestModifier, error) {
 	config, err := discogpt.GenerateConfig(configFilePath, log)
 	if err != nil {
-		return discogpt.Config{}, []discogpt.RequestModifier{}, err
+		return discogpt.Config{}, []discogpt.HTTPRequestModifier{}, []discogpt.GenerationRequestModifier{}, err
 	}
 	c, err := conf.String(&config)
 	if err != nil {
-		return discogpt.Config{}, []discogpt.RequestModifier{}, err
+		return discogpt.Config{}, []discogpt.HTTPRequestModifier{}, []discogpt.GenerationRequestModifier{}, err
 	}
 	log.Infof("Using config %s\n", c)
-	mods := []discogpt.RequestModifier{}
+	reqMods := []discogpt.HTTPRequestModifier{}
 	if config.OAIToken != "" {
-		mods = append(mods, func(req *http.Request) error {
+		reqMods = append(reqMods, func(req *http.Request) error {
 			req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", config.OAIToken))
 			return nil
 		})
 	}
-	return config, mods, nil
+
+	genMods := []discogpt.GenerationRequestModifier{}
+	if config.ChromaURL != "" {
+		chromaMod, err := discogpt.NewChromaMod(config.ChromaURL, config.ChromaTEIURL, config.ChromaCollectionName)
+		if err != nil {
+			return discogpt.Config{}, []discogpt.HTTPRequestModifier{}, []discogpt.GenerationRequestModifier{}, err
+		}
+		genMods = append(genMods, chromaMod)
+	}
+	return config, reqMods, genMods, nil
 }
 
 func Run(g discogpt.MessageGenerator, m discogpt.GeneratorMessager, log discogpt.Logger) error {

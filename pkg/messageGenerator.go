@@ -38,11 +38,12 @@ var (
 // fulfills MessageGenerator for OpenAI compatible APIs like textgen
 // in instruct mode
 type oaiGenerator struct {
-	CompletionsURL   string            // will be constructed by parsing with url & appending /v1/chat/completions
-	SystemPrompt     string            // gets inserted before the provided messages as a prompt with role System
-	RequestModifiers []RequestModifier // Will be called on the request made for generation, mostly used for auth
-	Model            string            //The model to include in the OAI chat completions call
-	Log              Logger
+	CompletionsURL      string                      // will be constructed by parsing with url & appending /v1/chat/completions
+	SystemPrompt        string                      // gets inserted before the provided messages as a prompt with role System
+	RequestModifiers    []HTTPRequestModifier       // Will be called on the http request made for generation, mostly used for auth
+	GenerationModifiers []GenerationRequestModifier // Will be called on the oai generation request prior to it being sent to the API
+	Model               string                      //The model to include in the OAI chat completions call
+	Log                 Logger
 }
 
 type oaiCompletionsReq struct {
@@ -73,9 +74,11 @@ type oaiMessage struct {
 	Content string `json:"content"`
 }
 
-type RequestModifier func(*http.Request) error
+type HTTPRequestModifier func(*http.Request) error
+type GenerationRequestModifier func(*oaiCompletionsReq) error
 
-func NewOpenAIGenerator(baseURL string, model string, promptPrefix string, log Logger, mods ...RequestModifier) (*oaiGenerator, error) {
+func NewOpenAIGenerator(baseURL string, model string, promptPrefix string, log Logger,
+	reqMods []HTTPRequestModifier, genMods []GenerationRequestModifier) (*oaiGenerator, error) {
 	completions, err := url.JoinPath(baseURL, oaiCompletionsEndpoint)
 	if err != nil {
 		return nil, err
@@ -83,7 +86,7 @@ func NewOpenAIGenerator(baseURL string, model string, promptPrefix string, log L
 	return &oaiGenerator{
 		CompletionsURL:   completions,
 		SystemPrompt:     promptPrefix + "\n",
-		RequestModifiers: mods,
+		RequestModifiers: reqMods,
 		Model:            model,
 		Log:              log,
 	}, nil
@@ -105,6 +108,13 @@ func (o *oaiGenerator) Generate(ctx context.Context, prompt string, user string)
 			},
 		},
 	}
+	for _, mod := range o.GenerationModifiers {
+		err := mod(&cjson)
+		if err != nil {
+			return "", err
+		}
+	}
+	o.Log.Debugf("modified json: %+v\n", cjson)
 	var buf bytes.Buffer
 	err := json.NewEncoder(&buf).Encode(cjson)
 	if err != nil {
