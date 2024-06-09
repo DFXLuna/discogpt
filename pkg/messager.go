@@ -103,11 +103,12 @@ type ioMessager struct {
 	Log     Logger
 }
 
-func NewIOMessager(r io.Reader, w io.Writer, trigger string, g MessageGenerator, log Logger) *ioMessager {
+func NewIOMessager(r io.Reader, w io.Writer, trigger string, g MessageGenerator, user string, log Logger) *ioMessager {
 	return &ioMessager{
 		R:       r,
 		W:       w,
 		G:       g,
+		User:    user,
 		Trigger: trigger,
 		Log:     log,
 	}

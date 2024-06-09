@@ -20,7 +20,7 @@ func TestMessageGenerator(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mock_log := mock_discogpt.NewMockLogger(ctrl)
 
-	gen, err := discogpt.NewOpenAIGenerator("http://192.168.1.6:5001", "", "", mock_log)
+	gen, err := discogpt.NewOpenAIGenerator("http://192.168.1.6:5001", "", "", mock_log, []discogpt.HTTPRequestModifier{}, []discogpt.GenerationRequestModifier{})
 	require.NoError(err, "shouldn't error on NewOpenAIGen")
 
 	mock_log.EXPECT().Debugf("Generating for %v", "Emilia").Times(1)

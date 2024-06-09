@@ -12,8 +12,16 @@ type Logger interface {
 	Sync() error
 }
 
-func NewLogger() (*zap.SugaredLogger, error) {
+func NewProdLogger() (*zap.SugaredLogger, error) {
 	l, err := zap.NewProduction()
+	if err != nil {
+		return nil, err
+	}
+	return l.Sugar(), nil
+}
+
+func NewDebugLogger() (*zap.SugaredLogger, error) {
+	l, err := zap.NewDevelopment()
 	if err != nil {
 		return nil, err
 	}
