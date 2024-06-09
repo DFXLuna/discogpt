@@ -84,17 +84,18 @@ func NewOpenAIGenerator(baseURL string, model string, promptPrefix string, log L
 		return nil, err
 	}
 	return &oaiGenerator{
-		CompletionsURL:   completions,
-		SystemPrompt:     promptPrefix + "\n",
-		RequestModifiers: reqMods,
-		Model:            model,
-		Log:              log,
+		CompletionsURL:      completions,
+		SystemPrompt:        promptPrefix + "\n",
+		RequestModifiers:    reqMods,
+		GenerationModifiers: genMods,
+		Model:               model,
+		Log:                 log,
 	}, nil
 }
 
 func (o *oaiGenerator) Generate(ctx context.Context, prompt string, user string) (string, error) {
 	o.Log.Debugf("Generating for %v", user)
-	cjson := oaiCompletionsReq{
+	completionReq := oaiCompletionsReq{
 		Model: o.Model,
 		Mode:  oaiInstruct,
 		Messages: []oaiMessage{
@@ -109,14 +110,14 @@ func (o *oaiGenerator) Generate(ctx context.Context, prompt string, user string)
 		},
 	}
 	for _, mod := range o.GenerationModifiers {
-		err := mod(&cjson)
+		err := mod(&completionReq)
 		if err != nil {
 			return "", err
 		}
 	}
-	o.Log.Debugf("modified json: %+v\n", cjson)
+	o.Log.Debugf("modified json: %+v\n", completionReq)
 	var buf bytes.Buffer
-	err := json.NewEncoder(&buf).Encode(cjson)
+	err := json.NewEncoder(&buf).Encode(completionReq)
 	if err != nil {
 		return "", err
 	}

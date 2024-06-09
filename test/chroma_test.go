@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	chroma "github.com/amikos-tech/chroma-go"
-	"github.com/amikos-tech/chroma-go/collection"
 	huggingface "github.com/amikos-tech/chroma-go/hf"
 	"github.com/amikos-tech/chroma-go/types"
 	"github.com/stretchr/testify/require"
@@ -21,9 +20,8 @@ func TestChroma(t *testing.T) {
 	ef, err := huggingface.NewHuggingFaceEmbeddingInferenceFunction("http://localhost:8080/embed")
 	require.NoError(err)
 
-	myCollection, err := client.NewCollection(context.Background(),
-		collection.WithName("collection-1"),
-		collection.WithEmbeddingFunction(ef))
+	myCollection, err := client.CreateCollection(context.Background(), "chadbot-test", map[string]interface{}{}, true,
+		ef, types.L2)
 	require.NoError(err)
 
 	rs, err := types.NewRecordSet(types.WithEmbeddingFunction(ef),

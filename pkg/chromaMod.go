@@ -4,20 +4,16 @@ import (
 	"context"
 
 	chroma "github.com/amikos-tech/chroma-go"
-	"github.com/amikos-tech/chroma-go/collection"
 	huggingface "github.com/amikos-tech/chroma-go/hf"
+	"github.com/amikos-tech/chroma-go/types"
 	"github.com/samber/lo"
 )
-
-// http://localhost:8000
-// http://localhost:8080/embed
-// "collection-1"
 
 const (
 	numResults = 4
 )
 
-func NewChromaMod(baseURL string, teiURL string, collectionName string) (GenerationRequestModifier, error) {
+func NewChromaMod(baseURL string, teiURL string, collectionName string, log Logger) (GenerationRequestModifier, error) {
 	client, err := chroma.NewClient(baseURL)
 	if err != nil {
 		return nil, err
@@ -28,9 +24,7 @@ func NewChromaMod(baseURL string, teiURL string, collectionName string) (Generat
 		return nil, err
 	}
 
-	myCollection, err := client.NewCollection(context.Background(),
-		collection.WithName(collectionName),
-		collection.WithEmbeddingFunction(ef))
+	myCollection, err := client.CreateCollection(context.TODO(), collectionName, map[string]interface{}{}, true, ef, types.L2)
 	if err != nil {
 		return nil, err
 	}
@@ -59,6 +53,7 @@ func NewChromaMod(baseURL string, teiURL string, collectionName string) (Generat
 			Content: memories,
 		}
 		ocr.Messages = append(ocr.Messages[:len(ocr.Messages)-1], memoriesMessage, ocr.Messages[len(ocr.Messages)-1])
+		log.Debugf("Modified memories: %+v", ocr.Messages)
 		return nil
 	}, nil
 
