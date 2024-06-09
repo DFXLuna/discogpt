@@ -15,6 +15,15 @@ Even though DiscoGPT has no telemetry, ChromaDB and HuggingFace TEI may or may n
     - [HuggingFace TEI server](https://github.com/huggingface/text-embeddings-inference/pkgs/container/text-embeddings-inference)
 - Add the full URLs (protocol included) into your config.yaml as described in the [top level readme](../README.md), DiscoGPT will automatically enable the chroma mod.
 
+### Networking
+- Depending on your setup, networking can be a little tricky.
+  - All in one compose file
+      - Use network links and service names with the internal container ports
+      - DiscoGPT's config.yaml will also use the service name as the host name in the url 
+        - e.g. With Chroma service `chroma`: `ChromaURL: http://chroma:8000`
+  - Multiple compose groups or DiscoGPT otherwise running outside of the docker network that Chroma & HF TEI are running on
+      - Use the standard docker compose network stuff: expose ports
+
 ### Embedding model selection
 The example below uses `sentence-transformers/all-MiniLM-L6-v2` because it's small enough to run on the CPU without trouble. You may also use any of TEI's [supported models](https://github.com/huggingface/text-embeddings-inference?tab=readme-ov-file#supported-models). Keep in mind that larger models may require GPU acceleration, which requires extra setup in your container runtime.
 
@@ -29,8 +38,8 @@ services:
     restart: "unless-stopped"
   chroma:
     image: ghcr.io/chroma-core/chroma:0.4.24
-    ports:
-      - 8000:8000
+    # ports:  # Add this if discogpt is accessing chroma from outside the compose group's network
+    #   - 8000:8000
     volumes:
       - ./chroma-data:/chroma/chroma # Persistant storage is required if you want to keep data between restarts
     environment:
@@ -49,8 +58,8 @@ services:
       retries: 3
   embedding-server:
     image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.2 # change to gpu if planning on using accelerated embedding
-    ports:
-      - 8080:80
+    # ports:     # Add this if discogpt is accessing chroma from outside the compose group's network
+    #   - 8080:80
     volumes:
       - ./tei-data:/data # Persistant storage is use to avoid pulling the model on every startup
     environment:
