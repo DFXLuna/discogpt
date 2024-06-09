@@ -54,32 +54,40 @@ func NewChromaMod(baseURL string, teiURL string, collectionName string, log Logg
 		}
 		ocr.Messages = append(ocr.Messages[:len(ocr.Messages)-1], memoriesMessage, ocr.Messages[len(ocr.Messages)-1])
 		log.Debugf("Modified memories: %+v", ocr.Messages)
+		err = makeRecord(context.TODO(), ef, myCollection, ocr.Messages[len(ocr.Messages)-1].Content, log)
+		if err != nil {
+			log.Errorf("Ignoring error sending message to Chroma")
+			return nil
+		}
+		msgs, err := myCollection.Count(context.TODO())
+		if err != nil {
+			log.Errorf("Ignoring error counting messages in Chroma")
+			return nil
+		}
+		log.Debugf("Found %d messages in Chroma", msgs)
 		return nil
 	}, nil
+}
 
-	// rs, err := types.NewRecordSet(types.WithEmbeddingFunction(ef),
-	// 	types.WithIDGenerator(types.NewULIDGenerator()))
-	// 	if err != nil {
-	// 		return err
-	// 	}
+func makeRecord(ctx context.Context, ef types.EmbeddingFunction,
+	myCollection *chroma.Collection, message string, log Logger) error {
+	rs, err := types.NewRecordSet(types.WithEmbeddingFunction(ef),
+		types.WithIDGenerator(types.NewULIDGenerator()))
+	if err != nil {
+		return err
+	}
 
-	// rs.WithRecord(types.WithDocument("My name is Emilia and I am a programmer."))
+	rs.WithRecord(types.WithDocument(message))
 
-	// _, err = rs.BuildAndValidate(context.Background())
-	// if err != nil {
-	// 	return err
-	// }
+	_, err = rs.BuildAndValidate(ctx)
+	if err != nil {
+		return err
+	}
 
-	// _, err = myCollection.AddRecords(context.Background(), rs)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// sz, err := myCollection.Count(context.Background())
-
-	// docs, err := myCollection.Query(context.TODO(), []string{"Who is Emilia"}, 5, nil, nil, nil)
-	// if err != nil {
-	// 	return err
-	// }
-
+	_, err = myCollection.AddRecords(ctx, rs)
+	if err != nil {
+		return err
+	}
+	log.Debugf("Stored message in Chroma")
+	return nil
 }
