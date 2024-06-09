@@ -27,7 +27,8 @@ type Config struct {
 	ChromaTEIURL         string `yaml:"ChromaTEIURL" conf:"env:DISCOGPT_CHROMA_TEI_URL"` //URL for your hugging face TEI server
 	ChromaCollectionName string `yaml:"ChromaCollectionName" conf:"env:DISCOGPT_CHROMA_COLLECTION_NAME"`
 
-	Debug bool `yaml:"Debug" conf:"env:DISCOGPT_DEBUG"` //turns on the debug logger
+	IOUser string `yaml:"IOUser" conf:"env:DISCOGPT_IO_USER"`
+	Debug  bool   `yaml:"Debug" conf:"env:DISCOGPT_DEBUG"` //turns on the debug logger
 }
 
 func GetAllowedChannels(c Config) []string {

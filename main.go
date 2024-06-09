@@ -39,7 +39,7 @@ func main() {
 		}
 
 	} else if config.Mode == string(discogpt.IOMode) {
-		im := discogpt.NewIOMessager(os.Stdin, os.Stdout, config.Trigger, mg, "user", log)
+		im := discogpt.NewIOMessager(os.Stdin, os.Stdout, config.Trigger, mg, config.IOUser, log)
 
 		err = Run(mg, im, log)
 		if err != nil {
@@ -68,6 +68,10 @@ func SetupConfig(configFilePath string) (
 		if err != nil {
 			return discogpt.Config{}, []discogpt.HTTPRequestModifier{}, []discogpt.GenerationRequestModifier{}, nil, err
 		}
+	}
+
+	if config.IOUser == "" {
+		config.IOUser = "user"
 	}
 
 	c, err := conf.String(&config)
