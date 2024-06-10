@@ -34,7 +34,9 @@ version: '3'
 services:
     image: dfxluna/discogpt:latest
     volumes:
-      - ./config.yaml:/discogpt/config.yaml # Mount your config file with ChromaURL, ChromaTEIURL and CollectionName specified
+      - type: bind # Mount your config file with ChromaURL, ChromaTEIURL and CollectionName specified
+        source: ./config.yaml
+        target: /discogpt/config.yaml 
     restart: "unless-stopped"
   chroma:
     image: ghcr.io/chroma-core/chroma:0.4.24
