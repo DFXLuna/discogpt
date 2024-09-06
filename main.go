@@ -2,12 +2,13 @@ package main
 
 import (
 	"context"
-	discogpt "egrant/disco-gpt/pkg"
 	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	discogpt "github.com/DFXLuna/discogpt/pkg"
 
 	"github.com/ardanlabs/conf/v3"
 	"go.uber.org/zap"

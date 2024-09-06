@@ -2,10 +2,12 @@ package test
 
 import (
 	"context"
-	discogpt "egrant/disco-gpt/pkg"
-	mock_discogpt "egrant/disco-gpt/pkg/mock"
 	"fmt"
 	"testing"
+
+	mock_discogpt "github.com/DFXLuna/discogpt/pkg/mock"
+
+	discogpt "github.com/DFXLuna/discogpt/pkg"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
